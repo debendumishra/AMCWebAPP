@@ -1,0 +1,16 @@
+# Environment & Local Configs
+.env
+config/local.php
+
+# Temporary & Scratch Files
+scratch/
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace

@@ -1,0 +1,87 @@
+<?php
+/**
+ * Application Constants and Enums
+ */
+
+defined('APP_INIT') or define('APP_INIT', true);
+
+// User Roles
+define('ROLE_SUPER_ADMIN', 1);
+define('ROLE_ADMIN', 2);
+define('ROLE_SUPPORT', 3);
+define('ROLE_CALL_CENTER', 4);
+define('ROLE_ENGINEER', 5);
+define('ROLE_CUSTOMER', 6);
+
+// Call Types
+define('CALL_TYPE_AMC', 'AMC');
+define('CALL_TYPE_PAID', 'PAID');
+define('CALL_TYPE_WARRANTY', 'WARRANTY');
+define('CALL_TYPE_PM', 'PM');
+define('CALL_TYPE_INSTALLATION', 'INSTALLATION');
+define('CALL_TYPE_EMERGENCY', 'EMERGENCY');
+define('CALL_TYPE_BREAKDOWN', 'BREAKDOWN');
+
+// Call Statuses
+define('STATUS_NEW', 'NEW');
+define('STATUS_ACKNOWLEDGED', 'ACKNOWLEDGED');
+define('STATUS_ASSIGNED', 'ASSIGNED');
+define('STATUS_ENGINEER_ACCEPTED', 'ENGINEER_ACCEPTED');
+define('STATUS_ON_THE_WAY', 'ON_THE_WAY');
+define('STATUS_ARRIVED', 'ARRIVED');
+define('STATUS_DIAGNOSIS', 'DIAGNOSIS');
+define('STATUS_SPARE_REQUIRED', 'SPARE_REQUIRED');
+define('STATUS_SPARE_APPROVED', 'SPARE_APPROVED');
+define('STATUS_SPARE_ISSUED', 'SPARE_ISSUED');
+define('STATUS_REPAIR_IN_PROGRESS', 'REPAIR_IN_PROGRESS');
+define('STATUS_RESOLVED', 'RESOLVED');
+define('STATUS_CUSTOMER_CONFIRMED', 'CUSTOMER_CONFIRMED');
+define('STATUS_CLOSED', 'CLOSED');
+define('STATUS_CANCELLED', 'CANCELLED');
+define('STATUS_REOPENED', 'REOPENED');
+
+// Priorities
+define('PRIORITY_CRITICAL', 'CRITICAL');
+define('PRIORITY_HIGH', 'HIGH');
+define('PRIORITY_MEDIUM', 'MEDIUM');
+define('PRIORITY_LOW', 'LOW');
+
+// Contract Types
+define('CONTRACT_COMPREHENSIVE', 'COMPREHENSIVE');
+define('CONTRACT_NON_COMPREHENSIVE', 'NON_COMPREHENSIVE');
+define('CONTRACT_LABOUR_ONLY', 'LABOUR_ONLY');
+define('CONTRACT_PARTS_ONLY', 'PARTS_ONLY');
+define('CONTRACT_PREVENTIVE', 'PREVENTIVE');
+define('CONTRACT_CUSTOM', 'CUSTOM');
+
+// Spare Request Statuses
+define('SPARE_REQ_PENDING', 'REQUESTED');
+define('SPARE_REQ_APPROVED', 'APPROVED');
+define('SPARE_REQ_PARTIALLY_APPROVED', 'PARTIALLY_APPROVED');
+define('SPARE_REQ_REJECTED', 'REJECTED');
+define('SPARE_REQ_ISSUED', 'ISSUED');
+define('SPARE_REQ_USED', 'USED');
+define('SPARE_REQ_RETURNED', 'RETURNED');
+
+// Inventory Transaction Types
+define('TXN_OPENING', 'OPENING');
+define('TXN_PURCHASE', 'PURCHASE');
+define('TXN_PURCHASE_RETURN', 'PURCHASE_RETURN');
+define('TXN_ISSUE', 'ISSUE');
+define('TXN_CONSUMPTION', 'CONSUMPTION');
+define('TXN_RETURN', 'RETURN');
+define('TXN_TRANSFER_IN', 'TRANSFER_IN');
+define('TXN_TRANSFER_OUT', 'TRANSFER_OUT');
+define('TXN_DAMAGE', 'DAMAGE');
+define('TXN_ADJUSTMENT', 'ADJUSTMENT');
+
+// Document Number Prefixes (Default)
+define('PREFIX_CALL', 'CALL-');
+define('PREFIX_CONTRACT', 'CON-');
+define('PREFIX_CUSTOMER', 'CUST-');
+define('PREFIX_ASSET', 'AST-');
+define('PREFIX_SERVICE_REPORT', 'SR-');
+define('PREFIX_INVOICE', 'INV-');
+define('PREFIX_PURCHASE', 'PUR-');
+define('PREFIX_SPARE_REQ', 'REQ-');
+define('PREFIX_ENGINEER', 'ENG-');

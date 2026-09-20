@@ -1,0 +1,219 @@
+/**
+ * Styles for Field Technicians & Mobile Workflows
+ */
+
+/* Responsive Containers */
+@media (max-width: 767.98px) {
+    .mobile-app-container {
+        max-width: 600px;
+        margin: 0 auto;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background: #f8fafc;
+        padding-bottom: 75px; /* Room for bottom navigation */
+    }
+}
+
+@media (min-width: 768px) {
+    .mobile-app-container {
+        max-width: 100% !important;
+        margin: 0 !important;
+        min-height: auto;
+        display: block;
+        background: transparent !important;
+        padding-bottom: 0 !important;
+    }
+    .mobile-top-bar,
+    .bottom-nav {
+        display: none !important;
+    }
+}
+
+/* Mobile Header */
+.mobile-top-bar {
+    background: #0f172a;
+    color: #ffffff;
+    padding: 0.85rem 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Bottom Navigation Bar */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    background: #ffffff;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 1030;
+    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.06);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    text-decoration: none;
+    font-size: 0.72rem;
+    font-weight: 600;
+    flex: 1;
+    height: 100%;
+    transition: color 0.15s ease;
+}
+
+.bottom-nav-item i {
+    font-size: 1.25rem;
+    margin-bottom: 2px;
+}
+
+.bottom-nav-item.active {
+    color: #2563eb;
+}
+
+/* Job Card Workflow Stepper */
+.workflow-stepper {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem 0.5rem;
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.workflow-stepper::before {
+    content: '';
+    position: absolute;
+    top: calc(1rem + 16px);
+    left: 10%;
+    right: 10%;
+    height: 3px;
+    background: #e2e8f0;
+    z-index: 1;
+}
+
+.workflow-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #94a3b8;
+    z-index: 2;
+    position: relative;
+}
+
+.step-circle {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2px solid #e2e8f0;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+    transition: all 0.2s ease;
+}
+
+.workflow-step.active .step-circle {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #ffffff;
+    box-shadow: 0 0 10px rgba(37, 99, 235, 0.4);
+}
+
+.workflow-step.completed .step-circle {
+    background: #10b981;
+    border-color: #10b981;
+    color: #ffffff;
+}
+
+/* Mobile Action Buttons */
+.btn-touch-action {
+    height: 50px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Signature Canvas Area */
+.signature-container {
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    background: #ffffff;
+    position: relative;
+    touch-action: none;
+    overflow: hidden;
+}
+
+.signature-canvas {
+    width: 100%;
+    height: 180px;
+    display: block;
+    cursor: crosshair;
+}
+
+.signature-actions {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+}
+
+/* QR Code Scanner Overlay */
+.qr-scanner-box {
+    width: 100%;
+    height: 280px;
+    background: #000;
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.qr-scanner-guide {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 180px;
+    height: 180px;
+    border: 2px solid #2563eb;
+    border-radius: 12px;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+}
+
+.qr-scan-line {
+    width: 100%;
+    height: 2px;
+    background: #2563eb;
+    position: absolute;
+    animation: scanAnim 2s infinite ease-in-out;
+}
+
+@keyframes scanAnim {
+    0% { top: 0; opacity: 0; }
+    50% { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+}
