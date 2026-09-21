@@ -183,6 +183,21 @@ class MachineController extends Controller {
             return;
         }
 
+        // Security check for Customer Portal role
+        if ($role === ROLE_CUSTOMER) {
+            $user = Auth::user();
+            $currentCustId = (int)($user['customer_id'] ?? 0);
+            if ((int)$machine['customer_id'] !== $currentCustId) {
+                $this->render('machines/qr_not_your_asset', [
+                    'pageTitle'   => 'Not Your Asset',
+                    'activeMenu'  => 'machines',
+                    'machine'     => $machine,
+                    'scannedCode' => !empty($cleanToken) ? $cleanToken : $rawToken
+                ], 'customer_layout');
+                return;
+            }
+        }
+
         $serviceHistory = $this->machineModel->getServiceHistory((int)$machine['id']);
 
         $this->render('machines/qr', [
@@ -203,11 +218,24 @@ class MachineController extends Controller {
 
         if (Auth::role() === ROLE_CUSTOMER) {
             $user = Auth::user();
-            $customerId = (int)($user['customer_id'] ?? 1);
+            $customerId = (int)($user['customer_id'] ?? 0);
         }
 
         if (!empty($qrToken)) {
             $machine = $this->machineModel->findByQrToken($qrToken);
+            
+            if ($machine && Auth::role() === ROLE_CUSTOMER) {
+                if ((int)$machine['customer_id'] !== (int)$customerId) {
+                    Response::json([
+                        'success'        => false,
+                        'not_your_asset' => true,
+                        'message'        => 'This hardware asset is not registered under your company account.',
+                        'asset_code'     => $machine['asset_code'] ?? 'Unknown'
+                    ]);
+                    return;
+                }
+            }
+
             Response::json([
                 'success'  => (bool)$machine,
                 'count'    => $machine ? 1 : 0,

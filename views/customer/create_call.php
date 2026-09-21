@@ -390,13 +390,17 @@ window.onQrCodeScanned = function(cleanToken, raw) {
     fetch(`${App.baseUrl}/ajax/search-machines?qr=${encodeURIComponent(cleanToken)}`)
         .then(res => res.json())
         .then(data => {
+            if (data.not_your_asset) {
+                alert(`⚠️ Not Your Asset:\n\nThe scanned hardware (${data.asset_code || cleanToken}) belongs to another customer account.\n\nYou can only raise service complaints on hardware assets registered under your company.`);
+                return;
+            }
             if (data.success && data.machine) {
                 selectAsset(data.machine);
                 if (typeof App !== 'undefined' && App.toast) {
                     App.toast(`Asset Identified: ${data.machine.make} ${data.machine.model} (${data.machine.asset_code})`, 'success');
                 }
             } else {
-                alert(`Asset not found for scanned code: "${cleanToken}". Please check if this asset belongs to your account.`);
+                alert(`Asset not found for scanned code: "${cleanToken}". Please check if this asset is registered under your account.`);
             }
         })
         .catch(err => {

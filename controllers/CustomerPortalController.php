@@ -69,6 +69,15 @@ class CustomerPortalController extends Controller {
     }
 
     public function createCall(): void {
+        $preSelectedId = Request::get('machine_id');
+        if ($preSelectedId) {
+            $checkMach = $this->machineModel->find((int)$preSelectedId);
+            if (!$checkMach || (int)$checkMach['customer_id'] !== $this->customerId) {
+                $this->setFlash('error', 'The requested asset is not registered under your company account.');
+                $_GET['machine_id'] = null;
+            }
+        }
+
         $machines = $this->machineModel->getDetailedList(['customer_id' => $this->customerId]);
         $locModel = new CustomerLocation();
         $locations = $locModel->getByCustomerId($this->customerId);
@@ -95,6 +104,16 @@ class CustomerPortalController extends Controller {
         $machineId = Request::post('machine_id') ? (int)Request::post('machine_id') : null;
         $reportedIssue = Request::post('reported_issue');
         $user = Auth::user();
+
+        // Strict customer machine ownership verification
+        if ($machineId) {
+            $checkMach = $this->machineModel->find($machineId);
+            if (!$checkMach || (int)$checkMach['customer_id'] !== $this->customerId) {
+                $this->setFlash('error', 'You cannot raise a complaint for an asset that does not belong to your company.');
+                Response::redirect('customer/calls/create');
+                return;
+            }
+        }
 
         $this->callModel->create([
             'call_number'            => $callNo,
