@@ -18,26 +18,33 @@ class MachineQRScanner {
         if (!raw) return '';
         let str = String(raw).trim();
 
-        // If URL encoded, decode it
+        // Iteratively decode if URL encoded
         try {
-            str = decodeURIComponent(str);
+            while (str.includes('%2F') || str.includes('%3A') || str.includes('%20')) {
+                const decoded = decodeURIComponent(str);
+                if (decoded === str) break;
+                str = decoded;
+            }
         } catch(e) {}
 
-        // Match /machines/qr/{token} inside URL
-        const qrMatch = str.match(/machines\/qr\/([^/?#\s]+)/i);
-        if (qrMatch) {
-            return qrMatch[1].trim();
+        // Match all /machines/qr/{token} occurrences and pick the last one that isn't 'http:'
+        const matches = [...str.matchAll(/machines\/qr\/([^/?#\s]+)/gi)];
+        if (matches && matches.length > 0) {
+            for (let i = matches.length - 1; i >= 0; i--) {
+                const candidate = matches[i][1].trim();
+                if (candidate && !['http:', 'https:'].includes(candidate.toLowerCase())) {
+                    return candidate;
+                }
+            }
         }
 
-        // If full URL, take last path segment
-        if (str.startsWith('http://') || str.startsWith('https://')) {
-            try {
-                const u = new URL(str);
-                const parts = u.pathname.split('/').filter(Boolean);
-                if (parts.length > 0) {
-                    return parts[parts.length - 1];
-                }
-            } catch(e) {}
+        // If it's a URL or path with slashes, take the last non-empty segment
+        const segments = str.replace(/\\/g, '/').split('/').map(s => s.trim()).filter(s => {
+            return s !== '' && !['http:', 'https:', 'localhost', 'machines', 'qr'].includes(s.toLowerCase());
+        });
+
+        if (segments.length > 0) {
+            return segments[segments.length - 1];
         }
 
         return str;

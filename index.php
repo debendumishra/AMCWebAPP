@@ -65,7 +65,8 @@ Router::get('machines', 'MachineController@index', [ROLE_SUPER_ADMIN, ROLE_ADMIN
 Router::get('machines/create', 'MachineController@create', [ROLE_SUPER_ADMIN, ROLE_ADMIN, ROLE_SUPPORT]);
 Router::post('machines/create', 'MachineController@store', [ROLE_SUPER_ADMIN, ROLE_ADMIN, ROLE_SUPPORT]);
 Router::get('machines/{id}', 'MachineController@show');
-Router::get('machines/qr/{token}', 'MachineController@viewByQrToken');
+Router::get('machines/qr/{token:.*}', 'MachineController@viewByQrToken');
+Router::get('machines/qr', 'MachineController@viewByQrToken');
 
 // AMC Contracts
 Router::get('contracts', 'ContractController@index', [ROLE_SUPER_ADMIN, ROLE_ADMIN, ROLE_SUPPORT, ROLE_CALL_CENTER]);

@@ -335,7 +335,7 @@ $user = Auth::user();
 <script src="<?= BASE_URL ?>/assets/js/app.js"></script>
 <script src="<?= BASE_URL ?>/assets/js/signature-pad.js"></script>
 <script src="<?= BASE_URL ?>/assets/js/offline-sync.js"></script>
-<script src="<?= BASE_URL ?>/assets/js/qr-scanner.js"></script>
+<script src="<?= BASE_URL ?>/assets/js/qr-scanner.js?v=<?= time() ?>"></script>
 <script>
 let qrScannerInstance = null;
 let activeQrCallback = null;
@@ -382,20 +382,21 @@ function submitManualQrCode() {
 }
 
 function dispatchQrResult(cleanToken, raw) {
-    if (!cleanToken) return;
+    const finalToken = MachineQRScanner.extractToken(cleanToken || raw);
+    if (!finalToken) return;
 
     if (activeQrCallback) {
-        activeQrCallback(cleanToken, raw);
+        activeQrCallback(finalToken, raw);
         return;
     }
 
     if (typeof window.onQrCodeScanned === 'function') {
-        window.onQrCodeScanned(cleanToken, raw);
+        window.onQrCodeScanned(finalToken, raw);
         return;
     }
 
     // Default global redirect to asset QR view
-    window.location.href = `${App.baseUrl}/machines/qr/${encodeURIComponent(cleanToken)}`;
+    window.location.href = `${App.baseUrl}/machines/qr/${encodeURIComponent(finalToken)}`;
 }
 </script>
 </body>

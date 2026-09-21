@@ -67,8 +67,9 @@ class Router {
                 continue;
             }
 
-            // Convert route pattern with dynamic parameters (e.g., /calls/{id})
-            $pattern = preg_replace('/\{([a-zA-Z0-9_]+)\}/', '(?P<$1>[^/]+)', $route['path']);
+            // Convert route pattern with dynamic parameters (e.g., /calls/{id} or {token:.*})
+            $pattern = preg_replace('/\{([a-zA-Z0-9_]+):\.\*\}/', '(?P<$1>.+)', $route['path']);
+            $pattern = preg_replace('/\{([a-zA-Z0-9_]+)\}/', '(?P<$1>[^/]+)', $pattern);
             $pattern = "#^" . $pattern . "$#";
 
             if (preg_match($pattern, $path, $matches)) {

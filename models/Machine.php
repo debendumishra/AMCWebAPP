@@ -52,13 +52,32 @@ class Machine extends Model {
      * Find machine by QR Code Token, Asset Code, Serial Number, or Asset Tag
      */
     public function findByQrToken(string $token): ?array {
-        $token = trim(urldecode($token));
+        $str = trim(urldecode($token));
         
-        // Extract token if a full URL was scanned or passed
-        if (preg_match('~machines/qr/([^/?#]+)~i', $token, $m)) {
-            $token = trim($m[1]);
-        } elseif (preg_match('~/([^/?#]+)$~', $token, $m) && (str_starts_with($token, 'http://') || str_starts_with($token, 'https://'))) {
-            $token = trim($m[1]);
+        while (str_contains($str, '%2F') || str_contains($str, '%3A')) {
+            $decoded = urldecode($str);
+            if ($decoded === $str) break;
+            $str = $decoded;
+        }
+
+        if (preg_match_all('~machines/qr/([^/?#\s]+)~i', $str, $matches)) {
+            for ($i = count($matches[1]) - 1; $i >= 0; $i--) {
+                $candidate = trim($matches[1][$i]);
+                if (!in_array(strtolower($candidate), ['http:', 'https:'])) {
+                    $token = $candidate;
+                    break;
+                }
+            }
+        } else {
+            $segments = array_values(array_filter(explode('/', str_replace('\\', '/', $str)), function($p) {
+                $p = trim($p);
+                return $p !== '' && !in_array(strtolower($p), ['http:', 'https:', 'localhost', 'machines', 'qr']);
+            }));
+            if (!empty($segments)) {
+                $token = end($segments);
+            } else {
+                $token = $str;
+            }
         }
 
         $stmt = $this->db->prepare("
