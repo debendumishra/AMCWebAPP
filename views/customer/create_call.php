@@ -34,7 +34,10 @@ $selectedMachineId = Request::get('machine_id');
                         <i class="bi bi-pc-display text-primary me-1"></i> Problematic Machine / IT Asset
                     </label>
                     <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2" onclick="openAssetBrowserModal()">
+                        <button type="button" class="btn btn-xs btn-dark rounded-pill px-3 shadow-sm fw-medium" onclick="openQrScannerModal()">
+                            <i class="bi bi-qr-code-scan text-info me-1"></i> Scan QR
+                        </button>
+                        <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-3" onclick="openAssetBrowserModal()">
                             <i class="bi bi-grid-3x3-gap me-1"></i> Browse Assets
                         </button>
                     </div>
@@ -379,4 +382,26 @@ function escapeHtml(str) {
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
 }
+
+// Hook QR scanner to auto-populate customer complaint form
+window.onQrCodeScanned = function(cleanToken, raw) {
+    if (!cleanToken) return;
+
+    fetch(`${App.baseUrl}/ajax/search-machines?qr=${encodeURIComponent(cleanToken)}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.machine) {
+                selectAsset(data.machine);
+                if (typeof App !== 'undefined' && App.toast) {
+                    App.toast(`Asset Identified: ${data.machine.make} ${data.machine.model} (${data.machine.asset_code})`, 'success');
+                }
+            } else {
+                alert(`Asset not found for scanned code: "${cleanToken}". Please check if this asset belongs to your account.`);
+            }
+        })
+        .catch(err => {
+            console.error('Error scanning asset:', err);
+            alert('Could not look up asset. Please check network connection.');
+        });
+};
 </script>

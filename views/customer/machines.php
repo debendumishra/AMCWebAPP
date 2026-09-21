@@ -9,7 +9,10 @@
         <p class="text-muted small mb-0">List of computers, servers, laptops, and printers covered under maintenance.</p>
     </div>
     <div class="d-flex gap-2">
-        <a href="<?= BASE_URL ?>/customer/calls/create" class="btn btn-primary btn-sm shadow-sm">
+        <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-sm fw-medium" onclick="openQrScannerModal()">
+            <i class="bi bi-qr-code-scan text-info me-1"></i> Scan Asset QR
+        </button>
+        <a href="<?= BASE_URL ?>/customer/calls/create" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm fw-bold">
             <i class="bi bi-plus-circle me-1"></i> Raise Issue on Asset
         </a>
     </div>
@@ -21,6 +24,9 @@
         <div class="input-group">
             <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-primary"></i></span>
             <input type="text" id="machineSearchFilter" class="form-control border-start-0 ps-0" placeholder="Quick search by Serial Number, Asset Tag, Make/Model, Assigned User, or Department..." autocomplete="off">
+            <button class="btn btn-outline-dark border" type="button" onclick="openQrScannerModal()" title="Scan QR Code to Filter">
+                <i class="bi bi-qr-code-scan text-info me-1"></i> Scan
+            </button>
             <button class="btn btn-outline-secondary" type="button" id="clearSearchBtn" style="display:none;">Clear</button>
         </div>
         <div class="d-flex justify-content-between align-items-center mt-2 px-1">
@@ -107,5 +113,13 @@ document.addEventListener('DOMContentLoaded', function() {
         searchInput.dispatchEvent(new Event('input'));
         searchInput.focus();
     });
+
+    // Hook QR scanner to filter asset list directly
+    window.onQrCodeScanned = function(cleanToken, raw) {
+        if (!cleanToken || !searchInput) return;
+        searchInput.value = cleanToken;
+        searchInput.dispatchEvent(new Event('input'));
+        searchInput.focus();
+    };
 });
 </script>

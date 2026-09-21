@@ -3,46 +3,61 @@
  * Customer Self-Service Dashboard View
  */
 ?>
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
     <div>
         <h4 class="fw-bold mb-1">Welcome, <?= htmlspecialchars($customer['company_name'] ?? 'Client') ?></h4>
         <p class="text-muted small mb-0">Customer Portal: View covered machines, raise repair tickets, and download signed service reports.</p>
     </div>
-    <a href="<?= BASE_URL ?>/customer/calls/create" class="btn btn-primary shadow-sm">
-        <i class="bi bi-plus-circle me-1"></i> Raise Repair Ticket
-    </a>
+    <div class="d-flex gap-2">
+        <button type="button" class="btn btn-outline-dark rounded-pill px-3 shadow-sm fw-medium" onclick="openQrScannerModal()">
+            <i class="bi bi-qr-code-scan text-info me-1"></i> Scan Asset QR
+        </button>
+        <a href="<?= BASE_URL ?>/customer/calls/create" class="btn btn-primary rounded-pill px-3 shadow-sm fw-bold">
+            <i class="bi bi-plus-circle me-1"></i> Raise Repair Ticket
+        </a>
+    </div>
 </div>
 
 <!-- KPI Cards -->
 <div class="row g-3 mb-4">
-    <div class="col-md-4">
+    <div class="col-6 col-md-3">
         <div class="stat-card">
             <div>
-                <div class="stat-label">Active Support Calls</div>
+                <div class="stat-label">Active Calls</div>
                 <div class="stat-val text-primary"><?= count($openCalls) ?></div>
-                <div class="text-xs text-muted mt-1">In progress with technician</div>
+                <div class="text-xs text-muted mt-1">In progress</div>
             </div>
             <div class="stat-icon bg-primary-subtle text-primary"><i class="bi bi-headset"></i></div>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-6 col-md-3">
         <div class="stat-card">
             <div>
-                <div class="stat-label">Registered IT Assets</div>
+                <div class="stat-label">IT Assets</div>
                 <div class="stat-val text-success"><?= count($machines) ?></div>
-                <div class="text-xs text-muted mt-1">Computers, Laptops & Servers</div>
+                <div class="text-xs text-muted mt-1">Under Maintenance</div>
             </div>
             <div class="stat-icon bg-success-subtle text-success"><i class="bi bi-pc-display"></i></div>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-6 col-md-3">
         <div class="stat-card">
             <div>
-                <div class="stat-label">Contract Status</div>
+                <div class="stat-label">Contract</div>
                 <div class="stat-val text-success fs-5">Active AMC</div>
-                <div class="text-xs text-muted mt-1">Comprehensive Support</div>
+                <div class="text-xs text-muted mt-1">Comprehensive</div>
             </div>
             <div class="stat-icon bg-info-subtle text-info"><i class="bi bi-shield-check"></i></div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card cursor-pointer border-2 border-primary border-opacity-25" onclick="openQrScannerModal()" style="cursor: pointer;">
+            <div>
+                <div class="stat-label text-primary fw-bold">Asset QR Scan</div>
+                <div class="stat-val fs-6 mt-1 text-dark"><i class="bi bi-camera me-1 text-info"></i> Instant Scan</div>
+                <div class="text-xs text-muted mt-1">Scan physical sticker</div>
+            </div>
+            <div class="stat-icon bg-dark text-info"><i class="bi bi-qr-code-scan"></i></div>
         </div>
     </div>
 </div>

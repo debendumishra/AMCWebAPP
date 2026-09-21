@@ -70,7 +70,10 @@ $user = Auth::user();
                 <li class="nav-item"><a class="nav-link <?= ($activeMenu ?? '') === 'calls' ? 'active' : '' ?>" href="<?= BASE_URL ?>/customer/calls">Service Calls</a></li>
                 <li class="nav-item"><a class="nav-link <?= ($activeMenu ?? '') === 'invoices' ? 'active' : '' ?>" href="<?= BASE_URL ?>/customer/invoices">Invoices & AMC</a></li>
             </ul>
-            <div class="d-flex align-items-center gap-3">
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-sm btn-outline-info rounded-pill px-3 fw-medium d-inline-flex align-items-center gap-1" onclick="openQrScannerModal()">
+                    <i class="bi bi-qr-code-scan"></i> <span>Scan QR</span>
+                </button>
                 <a href="<?= BASE_URL ?>/customer/calls/create" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold">
                     <i class="bi bi-plus-circle me-1"></i> Raise Complaint
                 </a>
@@ -96,11 +99,14 @@ $user = Auth::user();
             <?= strtoupper(substr($user['name'] ?? 'C', 0, 1)) ?>
         </div>
         <div>
-            <div class="fw-bold fs-7 text-white text-truncate" style="max-width: 190px;"><?= htmlspecialchars($user['name'] ?? 'Client') ?></div>
+            <div class="fw-bold fs-7 text-white text-truncate" style="max-width: 140px;"><?= htmlspecialchars($user['name'] ?? 'Client') ?></div>
             <div class="text-xs text-info"><i class="bi bi-patch-check-fill me-1"></i>Customer Portal</div>
         </div>
     </div>
     <div class="d-flex align-items-center gap-2">
+        <button type="button" class="btn btn-sm btn-dark border border-secondary text-white rounded-pill px-2 py-1 text-xs" onclick="openQrScannerModal()" title="Scan Asset QR">
+            <i class="bi bi-qr-code-scan text-info"></i> QR
+        </button>
         <a href="<?= BASE_URL ?>/customer/calls/create" class="btn btn-sm btn-primary rounded-pill px-2 py-1 text-xs fw-bold">
             <i class="bi bi-plus-lg me-1"></i> New
         </a>
@@ -154,7 +160,104 @@ $user = Auth::user();
     </a>
 </nav>
 
+<!-- QR Code Modal -->
+<div class="modal fade" id="qrScannerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header bg-dark text-white p-3 border-0">
+                <h6 class="modal-title mb-0 fw-bold"><i class="bi bi-qr-code-scan text-info me-2"></i>Scan Machine Asset QR</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-3 text-center">
+                <div class="qr-scanner-box mb-3 position-relative rounded-3 overflow-hidden bg-black" style="min-height: 240px;">
+                    <video id="qr-video" class="w-100 h-100 object-fit-cover"></video>
+                    <div class="qr-scanner-guide"><div class="qr-scan-line"></div></div>
+                </div>
+                
+                <div id="qrCameraNotice" class="mb-3"></div>
+
+                <p class="text-muted small mb-3">Point camera at the QR sticker on the CPU, monitor, or server chassis.</p>
+
+                <!-- Fallback manual input for damaged stickers or low-light -->
+                <div class="border-top pt-3 text-start">
+                    <label class="text-xs text-muted fw-bold text-uppercase mb-1">Or Enter Asset Code / S/N Manually</label>
+                    <div class="input-group input-group-sm">
+                        <input type="text" id="manualQrInput" class="form-control" placeholder="e.g. AST-2026-000001, Serial No..." onkeydown="if(event.key==='Enter') submitManualQrCode();">
+                        <button type="button" class="btn btn-dark px-3" onclick="submitManualQrCode()">
+                            <i class="bi bi-arrow-right-circle me-1"></i> Go
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="<?= BASE_URL ?>/assets/js/app.js"></script>
+<script src="<?= BASE_URL ?>/assets/js/qr-scanner.js?v=<?= time() ?>"></script>
+<script>
+let qrScannerInstance = null;
+let activeQrCallback = null;
+
+function openQrScannerModal(customCallback = null) {
+    activeQrCallback = typeof customCallback === 'function' ? customCallback : null;
+    const modalEl = document.getElementById('qrScannerModal');
+    if (!modalEl) return;
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+    modal.show();
+    
+    // Clear manual input field
+    const manualInput = document.getElementById('manualQrInput');
+    if (manualInput) manualInput.value = '';
+
+    if (!qrScannerInstance) {
+        qrScannerInstance = new MachineQRScanner('qr-video', (cleanToken, raw) => {
+            modal.hide();
+            dispatchQrResult(cleanToken, raw);
+        });
+    }
+    
+    qrScannerInstance.start();
+
+    modalEl.addEventListener('hidden.bs.modal', () => {
+        if (qrScannerInstance) qrScannerInstance.stop();
+        activeQrCallback = null;
+    }, { once: true });
+}
+
+function submitManualQrCode() {
+    const manualInput = document.getElementById('manualQrInput');
+    const val = manualInput ? manualInput.value.trim() : '';
+    if (!val) return;
+    
+    const modalEl = document.getElementById('qrScannerModal');
+    if (modalEl) {
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+    }
+    
+    const cleanToken = MachineQRScanner.extractToken(val);
+    dispatchQrResult(cleanToken, val);
+}
+
+function dispatchQrResult(cleanToken, raw) {
+    const finalToken = MachineQRScanner.extractToken(cleanToken || raw);
+    if (!finalToken) return;
+
+    if (activeQrCallback) {
+        activeQrCallback(finalToken, raw);
+        return;
+    }
+
+    if (typeof window.onQrCodeScanned === 'function') {
+        window.onQrCodeScanned(finalToken, raw);
+        return;
+    }
+
+    // Default global redirect to asset QR view
+    window.location.href = `${App.baseUrl}/machines/qr/${encodeURIComponent(finalToken)}`;
+}
+</script>
 </body>
 </html>
