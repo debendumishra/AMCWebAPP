@@ -49,9 +49,18 @@ class Machine extends Model {
     }
 
     /**
-     * Find machine by QR Code Token
+     * Find machine by QR Code Token, Asset Code, Serial Number, or Asset Tag
      */
     public function findByQrToken(string $token): ?array {
+        $token = trim(urldecode($token));
+        
+        // Extract token if a full URL was scanned or passed
+        if (preg_match('~machines/qr/([^/?#]+)~i', $token, $m)) {
+            $token = trim($m[1]);
+        } elseif (preg_match('~/([^/?#]+)$~', $token, $m) && (str_starts_with($token, 'http://') || str_starts_with($token, 'https://'))) {
+            $token = trim($m[1]);
+        }
+
         $stmt = $this->db->prepare("
             SELECT m.*, c.company_name, c.customer_code, c.mobile as customer_mobile, c.email as customer_email,
                    cl.location_name, cl.address as location_address, cl.city,
@@ -66,10 +75,24 @@ class Machine extends Model {
             LEFT JOIN contract_machines cm ON cm.machine_id = m.id AND cm.status = 'ACTIVE'
             LEFT JOIN contracts ct ON cm.contract_id = ct.id AND ct.status = 'ACTIVE'
             LEFT JOIN contract_types cty ON ct.contract_type_id = cty.id
-            WHERE m.qr_code_token = :token AND m.deleted_at IS NULL
+            WHERE (
+                m.qr_code_token = :t1 
+                OR m.asset_code = :t2 
+                OR m.serial_number = :t3 
+                OR m.asset_tag = :t4
+                OR (m.id = :t5 AND :t5_chk > 0)
+            ) AND m.deleted_at IS NULL
             LIMIT 1
         ");
-        $stmt->execute(['token' => $token]);
+        $isNumeric = is_numeric($token) ? (int)$token : 0;
+        $stmt->execute([
+            't1'     => $token,
+            't2'     => $token,
+            't3'     => $token,
+            't4'     => $token,
+            't5'     => $isNumeric,
+            't5_chk' => $isNumeric
+        ]);
         $row = $stmt->fetch();
         return $row ?: null;
     }

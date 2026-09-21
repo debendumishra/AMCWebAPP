@@ -311,7 +311,21 @@ $user = Auth::user();
                     <video id="qr-video" class="w-100 h-100 object-fit-cover"></video>
                     <div class="qr-scanner-guide"><div class="qr-scan-line"></div></div>
                 </div>
-                <p class="text-muted small mb-0">Point your camera at the asset QR sticker on the CPU cabinet, monitor, or laptop base.</p>
+                
+                <div id="qrCameraNotice" class="mb-3"></div>
+
+                <p class="text-muted small mb-3">Point camera at the QR sticker on the CPU, monitor, or server chassis.</p>
+
+                <!-- Fallback manual input for damaged stickers or low-light -->
+                <div class="border-top pt-3 text-start">
+                    <label class="text-xs text-muted fw-bold text-uppercase mb-1">Or Enter Asset Code / S/N Manually</label>
+                    <div class="input-group input-group-sm">
+                        <input type="text" id="manualQrInput" class="form-control" placeholder="e.g. AST-2026-000001, Serial No..." onkeydown="if(event.key==='Enter') submitManualQrCode();">
+                        <button type="button" class="btn btn-dark px-3" onclick="submitManualQrCode()">
+                            <i class="bi bi-arrow-right-circle me-1"></i> Go
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -324,22 +338,64 @@ $user = Auth::user();
 <script src="<?= BASE_URL ?>/assets/js/qr-scanner.js"></script>
 <script>
 let qrScannerInstance = null;
-function openQrScannerModal() {
+let activeQrCallback = null;
+
+function openQrScannerModal(customCallback = null) {
+    activeQrCallback = typeof customCallback === 'function' ? customCallback : null;
     const modalEl = document.getElementById('qrScannerModal');
-    const modal = new bootstrap.Modal(modalEl);
+    if (!modalEl) return;
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
     modal.show();
     
+    // Clear manual input field
+    const manualInput = document.getElementById('manualQrInput');
+    if (manualInput) manualInput.value = '';
+
     if (!qrScannerInstance) {
-        qrScannerInstance = new MachineQRScanner('qr-video', (code) => {
+        qrScannerInstance = new MachineQRScanner('qr-video', (cleanToken, raw) => {
             modal.hide();
-            window.location.href = `${App.baseUrl}/machines/qr/${encodeURIComponent(code)}`;
+            dispatchQrResult(cleanToken, raw);
         });
     }
+    
     qrScannerInstance.start();
 
     modalEl.addEventListener('hidden.bs.modal', () => {
         if (qrScannerInstance) qrScannerInstance.stop();
+        activeQrCallback = null;
     }, { once: true });
+}
+
+function submitManualQrCode() {
+    const manualInput = document.getElementById('manualQrInput');
+    const val = manualInput ? manualInput.value.trim() : '';
+    if (!val) return;
+    
+    const modalEl = document.getElementById('qrScannerModal');
+    if (modalEl) {
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+    }
+    
+    const cleanToken = MachineQRScanner.extractToken(val);
+    dispatchQrResult(cleanToken, val);
+}
+
+function dispatchQrResult(cleanToken, raw) {
+    if (!cleanToken) return;
+
+    if (activeQrCallback) {
+        activeQrCallback(cleanToken, raw);
+        return;
+    }
+
+    if (typeof window.onQrCodeScanned === 'function') {
+        window.onQrCodeScanned(cleanToken, raw);
+        return;
+    }
+
+    // Default global redirect to asset QR view
+    window.location.href = `${App.baseUrl}/machines/qr/${encodeURIComponent(cleanToken)}`;
 }
 </script>
 </body>

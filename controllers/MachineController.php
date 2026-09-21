@@ -139,15 +139,26 @@ class MachineController extends Controller {
     }
 
     public function viewByQrToken(string $token): void {
+        $token = trim(urldecode($token));
+        if (preg_match('~machines/qr/([^/?#]+)~i', $token, $m)) {
+            $token = trim($m[1]);
+        }
+
         $machine = $this->machineModel->findByQrToken($token);
+        
+        $role = Auth::role();
+        $layout = ($role === ROLE_ENGINEER) ? 'engineer_layout' : (($role === ROLE_CUSTOMER) ? 'customer_layout' : 'admin_layout');
+
         if (!$machine) {
-            die("Invalid or unassigned QR Code sticker.");
+            $this->render('machines/qr_not_found', [
+                'pageTitle'  => 'Asset Not Found',
+                'activeMenu' => 'machines',
+                'scannedCode' => $token
+            ], $layout);
+            return;
         }
 
         $serviceHistory = $this->machineModel->getServiceHistory((int)$machine['id']);
-
-        // Check if viewing in Mobile Engineer view or standard
-        $layout = (Auth::role() === ROLE_ENGINEER) ? 'engineer_layout' : 'admin_layout';
 
         $this->render('machines/qr', [
             'pageTitle'      => 'QR Asset: ' . $machine['asset_code'],
@@ -160,6 +171,7 @@ class MachineController extends Controller {
     public function ajaxSearch(): void {
         $this->requireAuth();
         $query = trim(Request::get('q', ''));
+        $qrToken = trim(Request::get('qr', Request::get('token', '')));
         $customerId = Request::get('customer_id');
         $locationId = Request::get('location_id');
         $limit = min(1000, max(1, (int)Request::get('limit', 100)));
@@ -167,6 +179,18 @@ class MachineController extends Controller {
         if (Auth::role() === ROLE_CUSTOMER) {
             $user = Auth::user();
             $customerId = (int)($user['customer_id'] ?? 1);
+        }
+
+        if (!empty($qrToken)) {
+            $machine = $this->machineModel->findByQrToken($qrToken);
+            Response::json([
+                'success'  => (bool)$machine,
+                'count'    => $machine ? 1 : 0,
+                'machine'  => $machine,
+                'results'  => $machine ? [$machine] : [],
+                'machines' => $machine ? [$machine] : []
+            ]);
+            return;
         }
 
         $results = $this->machineModel->searchAssets(

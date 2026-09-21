@@ -823,5 +823,27 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 300);
         });
     }
+
+    // Hook QR code scanner to auto-select asset on this Create Ticket form
+    window.onQrCodeScanned = function(cleanToken, raw) {
+        if (!cleanToken) return;
+        
+        fetch(`${App.baseUrl}/ajax/search-machines?qr=${encodeURIComponent(cleanToken)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.machine) {
+                    selectAsset(data.machine);
+                    if (typeof App !== 'undefined' && App.toast) {
+                        App.toast(`Asset Identified: ${data.machine.make} ${data.machine.model} (${data.machine.asset_code})`, 'success');
+                    }
+                } else {
+                    alert(`Asset not found for scanned code: "${cleanToken}". Please verify or browse assets.`);
+                }
+            })
+            .catch(err => {
+                console.error('Error scanning asset:', err);
+                alert('Could not look up asset. Please check network connection.');
+            });
+    };
 });
 </script>
