@@ -430,6 +430,8 @@ class EngineerController extends Controller {
         $signerName = Request::post('customer_signed_name');
         $signatureData = Request::post('customer_signature_data');
         $isDraft = (int)Request::post('is_draft', 0);
+        $lat = Request::post('latitude');
+        $lng = Request::post('longitude');
 
         if (empty($diagnosis) || empty($actionTaken)) {
             $this->setFlash('error', 'Diagnosis and Action Taken fields are required.');
@@ -444,13 +446,13 @@ class EngineerController extends Controller {
         $db = Database::getInstance();
         $reportNo = NumberGenerator::generate('service_report');
 
-        // Upsert Service Report
+        // Upsert Service Report with signature GPS
         $stmt = $db->prepare("
             INSERT INTO service_reports 
-            (report_number, call_id, engineer_id, customer_id, machine_id, diagnosis, action_taken, customer_signed_name, customer_signature_data, signed_at, is_draft, created_at)
-            VALUES (:rno, :cid, :eid, :custid, :mid, :diag, :act, :sname, :sdata, NOW(), :draft, NOW())
+            (report_number, call_id, engineer_id, customer_id, machine_id, diagnosis, action_taken, customer_signed_name, customer_signature_data, signature_latitude, signature_longitude, signed_at, is_draft, created_at)
+            VALUES (:rno, :cid, :eid, :custid, :mid, :diag, :act, :sname, :sdata, :lat, :lng, NOW(), :draft, NOW())
             ON DUPLICATE KEY UPDATE 
-            diagnosis = :diag2, action_taken = :act2, customer_signed_name = :sname2, customer_signature_data = :sdata2, is_draft = :draft2, updated_at = NOW()
+            diagnosis = :diag2, action_taken = :act2, customer_signed_name = :sname2, customer_signature_data = :sdata2, signature_latitude = :lat2, signature_longitude = :lng2, is_draft = :draft2, updated_at = NOW()
         ");
         $stmt->execute([
             'rno'    => $reportNo,
@@ -462,16 +464,20 @@ class EngineerController extends Controller {
             'act'    => $actionTaken,
             'sname'  => $signerName,
             'sdata'  => $signatureData,
+            'lat'    => !empty($lat) ? (float)$lat : null,
+            'lng'    => !empty($lng) ? (float)$lng : null,
             'draft'  => $isDraft,
             'diag2'  => $diagnosis,
             'act2'   => $actionTaken,
             'sname2' => $signerName,
             'sdata2' => $signatureData,
+            'lat2'   => !empty($lat) ? (float)$lat : null,
+            'lng2'   => !empty($lng) ? (float)$lng : null,
             'draft2' => $isDraft
         ]);
 
         if (!$isDraft) {
-            $this->callModel->transitionStatus($id, STATUS_RESOLVED, "Job Card signed by {$signerName}. Work completed.");
+            $this->callModel->transitionStatus($id, STATUS_RESOLVED, "Job Card signed by {$signerName}. Work completed.", !empty($lat) ? (float)$lat : null, !empty($lng) ? (float)$lng : null);
             $this->setFlash('success', "Service call resolved! Job card {$reportNo} submitted with e-signature.");
             Response::redirect('engineer');
         } else {

@@ -210,6 +210,13 @@
                             <?php if (!empty($t['remarks'])): ?>
                                 <div class="text-xs text-dark mt-1"><?= htmlspecialchars($t['remarks']) ?></div>
                             <?php endif; ?>
+                            <?php if (!empty($t['latitude']) && !empty($t['longitude'])): ?>
+                                <div class="mt-1">
+                                    <a href="https://maps.google.com/?q=<?= $t['latitude'] ?>,<?= $t['longitude'] ?>" target="_blank" class="badge bg-light text-primary border text-decoration-none py-1 px-2" style="font-size: 11px;">
+                                        <i class="bi bi-geo-alt-fill text-danger me-1"></i> GPS Check-in: <?= number_format((float)$t['latitude'], 5) ?>, <?= number_format((float)$t['longitude'], 5) ?> (Open Map)
+                                    </a>
+                                </div>
+                            <?php endif; ?>
                             <div class="timeline-time mt-1">
                                 <?= date('d M, h:i A', strtotime($t['created_at'])) ?> by <?= htmlspecialchars($t['user_name'] ?? 'System') ?>
                             </div>

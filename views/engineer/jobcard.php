@@ -61,6 +61,8 @@ $waDirectLink = "https://api.whatsapp.com/send?text=" . urlencode($waMessage) . 
             <input type="hidden" name="csrf_token" value="<?= Request::csrfToken() ?>">
             <input type="hidden" name="customer_signature_data" id="customer_signature_data">
             <input type="hidden" name="is_draft" id="is_draft_input" value="0">
+            <input type="hidden" name="latitude" id="sigLat">
+            <input type="hidden" name="longitude" id="sigLng">
 
             <!-- Customer & Asset Summary -->
             <div class="p-3 bg-light rounded-3 mb-3 small">
@@ -372,6 +374,28 @@ function setDraftMode(val) {
     if (sigPad) {
         sigPad.updateInput();
     }
+}
+
+// Auto capture GPS on form submission
+const formEl = document.getElementById('jobCardForm');
+if (formEl) {
+    formEl.addEventListener('submit', function(e) {
+        if (navigator.geolocation && !document.getElementById('sigLat').value) {
+            e.preventDefault();
+            navigator.geolocation.getCurrentPosition(
+                pos => {
+                    document.getElementById('sigLat').value = pos.coords.latitude;
+                    document.getElementById('sigLng').value = pos.coords.longitude;
+                    formEl.submit();
+                },
+                err => {
+                    console.warn('GPS capture error:', err.message);
+                    formEl.submit();
+                },
+                { timeout: 4000, enableHighAccuracy: true }
+            );
+        }
+    });
 }
 
 function saveOfflineDraft() {
